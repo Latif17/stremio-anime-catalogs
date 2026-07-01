@@ -344,8 +344,14 @@ function updateMappingsList() {
 								addNewId('livechart', el.livechart_id, el.kitsu_id, true)
 							if (el['notify.moe_id'])
 								addNewId('notifymoe', el['notify.moe_id'], el.kitsu_id, true)
-							if (el.imdb_id && el.imdb_id.toLowerCase() !== 'unknown' && el.imdb_id.startsWith('tt'))
-								rpdb.setKitsuToImdbId(el.kitsu_id, el.imdb_id)
+							let imdbId = null
+							if (typeof el.imdb_id === 'string') {
+								imdbId = el.imdb_id
+							} else if (Array.isArray(el.imdb_id)) {
+								imdbId = el.imdb_id.find(id => typeof id === 'string' && id.toLowerCase() !== 'unknown' && id.startsWith('tt'))
+							}
+							if (imdbId && imdbId.toLowerCase() !== 'unknown' && imdbId.startsWith('tt'))
+								rpdb.setKitsuToImdbId(el.kitsu_id, imdbId)
 						}
 					})
 					helpers.log('id lists', 'finished updating id lists')
