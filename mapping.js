@@ -76,9 +76,11 @@ const saveCacheToFile = (cb) => {
 	}, addonConfig.saveMapInterval)
 }
 
-setTimeout(() => {
-	saveCacheToFile()
-}, addonConfig.saveMapInterval)
+if (!process.env.VERCEL) {
+	setTimeout(() => {
+		saveCacheToFile()
+	}, addonConfig.saveMapInterval)
+}
 
 function retrieveKitsuEngTitle(kitsuId) {
 	if (!kitsuEngTitles[kitsuId]) {
@@ -366,7 +368,9 @@ function updateMappingsList() {
 	}, addonConfig.updateMappingsFromSource)
 }
 
-updateMappingsList()
+if (!process.env.VERCEL) {
+	updateMappingsList()
+}
 
 function updateKitsuExtra() {
 	// we need to update posters periodically for kitsu
@@ -401,6 +405,8 @@ function updateKitsuExtra() {
 	getKitsuExtra()
 }
 
-setTimeout(() => {
-	updateKitsuExtra()
-}, addonConfig.kitsuPosterCooldown)
+if (!process.env.VERCEL) {
+	setTimeout(() => {
+		updateKitsuExtra()
+	}, addonConfig.kitsuPosterCooldown)
+}
