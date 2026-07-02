@@ -45,7 +45,12 @@ if (addonConfig.scanOnStart) {
 
 const kitsuToImdb = (kitsuId) => {
 	if (!kitsuId) return false
-	return toImdb2[kitsuId] || (toImdb[kitsuId] || {}).imdb_id || false
+	const val = toImdb2[kitsuId] || (toImdb[kitsuId] || {}).imdb_id
+	if (typeof val === 'string') return val
+	if (Array.isArray(val)) {
+		return val.find(id => typeof id === 'string' && id.toLowerCase() !== 'unknown' && id.startsWith('tt')) || false
+	}
+	return false
 }
 
 module.exports = {
