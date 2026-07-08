@@ -109,6 +109,10 @@ userOptions.forEach(el => {
                         options: genres,
                     },
                     {
+                        name: 'country',
+                        options: ['Japan', 'China', 'Korea']
+                    },
+                    {
                         name:'skip',
                     }
                 ],
