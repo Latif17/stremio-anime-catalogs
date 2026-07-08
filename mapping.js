@@ -33,8 +33,20 @@ try {
 
 const allTypes = ['mal', 'anilist', 'anidb', 'anisearch', 'animeplanet', 'livechart', 'notifymoe']
 
+let mapUpdates = 0;
+const mapHandler = {
+    set(target, property, value) {
+        if (target[property] !== value) {
+            mapUpdates++;
+        }
+        target[property] = value;
+        return true;
+    }
+};
+
 allTypes.forEach(type => {
 	if (!map[type]) map[type] = {}
+	map[type] = new Proxy(map[type], mapHandler)
 	if (!guessed[type]) guessed[type] = []
 	if (!missing[type]) missing[type] = []
 })
@@ -302,6 +314,7 @@ module.exports = {
 		})
 	},
 	map: () => map,
+	getMapUpdates: () => mapUpdates,
 	guessed: () => guessed,
 	missing: () => missing,
 	kitsuCache: () => kitsuCache,

@@ -188,7 +188,7 @@ button:active {
             <img src="https://1fe84bc728af-stremio-anime-catalogs.baby-beamup.club/addon-logo.png">
          </div>
          <h1 class="name" style="display: block">Anime Catalogs</h1>
-         <h2 class="version">v1.0.3</h2>
+         <h2 class="version">v1.0.4</h2>
          <h2 class="description">Stremio catalogs for anime from: MyAnimeList, AniDB, AniList, Kitsu, aniSearch, LiveChart, Notify.Moe</h2>
 
          <div class="separator"></div>
@@ -211,12 +211,27 @@ button:active {
                </div>
                <div class="form-element">
                   <label for="ratings">
-                     <input type="checkbox" id="ratings" name="ratings"> <span class="label-to-right">Ratings on Posters (requires <a href="https://ratingposterdb.com/" target="_blank">RPDB</a> key)</span>
+                     <input type="checkbox" id="ratings" name="ratings" checked> <span class="label-to-right">Ratings on Posters (requires <a href="https://ratingposterdb.com/" target="_blank">RPDB</a> key)</span>
                   </label>
                </div>
                <div id="rpdb-data">
                </div>
                         <div class="separator"></div>
+
+               <h3 class="gives">Content Filters:</h3>
+               <div class="separator-small"></div>
+               <div class="form-element">
+                  <label for="country">
+                     <span class="label-to-right" style="margin-left: 0 !important; margin-right: 1vh;">Country of Origin:</span>
+                     <select id="country" name="country">
+                        <option value="All">All</option>
+                        <option value="Japan" selected>Japan</option>
+                        <option value="China">China</option>
+                        <option value="Korea">Korea</option>
+                     </select>
+                  </label>
+               </div>
+               <div class="separator"></div>
 
                <h3 class="gives">Choose catalogs:</h3>
 
@@ -418,11 +433,6 @@ button:active {
             mainForm.onchange = updateLink
          
 
-         if (typeof updateLink === 'function')
-            updateLink()
-         else
-            installLink.href = 'stremio://' + window.location.host + '/manifest.json'
-
          const checkbox = document.getElementById('ratings')
 
          checkbox.addEventListener('change', (event) => {
@@ -431,7 +441,7 @@ button:active {
              rpdbSettings.innerHTML = `
              <div class="form-element">
                <div class="label-to-top">RPDB API Key (get it from <a href="https://ratingposterdb.com/" target="_blank">RatingPosterDB</a>)</div>
-               <input type="input" id="rpdbkey" name="rpdbkey" class="full-width" required/>
+               <input type="input" id="rpdbkey" name="rpdbkey" class="full-width" value="t0-free-rpdb" required/>
             </div>
             `
             var rpdbInput = document.getElementById('rpdbkey')
@@ -459,6 +469,13 @@ button:active {
                rpdbSettings.innerHTML = ''
            }
          })
+
+         checkbox.dispatchEvent(new Event('change'))
+
+         if (typeof updateLink === 'function')
+            updateLink()
+         else
+            installLink.href = 'stremio://' + window.location.host + '/manifest.json'
       </script>
 	</body>
 

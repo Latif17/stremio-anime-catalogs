@@ -6,6 +6,64 @@ const path = require('path')
 const addonConfig = require('./config')
 const rpdb = require('./rpdb')
 const mapping = require('./mapping')
+const fs = require('fs')
+const { fetchCountries } = require('./update-countries')
+
+let anilistCountries = {};
+try {
+    anilistCountries = JSON.parse(fs.readFileSync(path.join(__dirname, 'db', 'anilist-countries.json')));
+} catch (e) {}
+
+if (!process.env.VERCEL) {
+    setInterval(async () => {
+        try {
+            const updatedMap = await fetchCountries();
+            if (updatedMap && Object.keys(updatedMap).length > 0) {
+                anilistCountries = updatedMap;
+            }
+        } catch (e) {
+            console.error('Error updating countries map in background:', e);
+        }
+    }, 24 * 60 * 60 * 1000); // 1 day
+}
+
+let kitsuToAnilistCache = null;
+let lastAnilistMapUpdates = -1;
+
+function getKitsuToAnilistMap() {
+    const anilistMap = mapping.map().anilist || {};
+    const currentUpdates = mapping.getMapUpdates ? mapping.getMapUpdates() : Object.keys(anilistMap).length;
+    if (lastAnilistMapUpdates !== currentUpdates || kitsuToAnilistCache === null) {
+        kitsuToAnilistCache = {};
+        for (const [aniId, kitsuId] of Object.entries(anilistMap)) {
+            kitsuToAnilistCache[kitsuId] = aniId;
+        }
+        lastAnilistMapUpdates = currentUpdates;
+    }
+    return kitsuToAnilistCache;
+}
+
+function filterMetasByCountry(metas, selectedCountry) {
+    if (!selectedCountry) selectedCountry = 'All';
+    if (selectedCountry === 'All') return metas;
+    
+    const kitsuToAnilist = getKitsuToAnilistMap();
+
+    return metas.filter(meta => {
+        const kitsuId = parseInt((meta.id || '').replace('kitsu:', ''));
+        const anilistId = kitsuToAnilist[kitsuId];
+        if (!anilistId) return true; // Fallback
+        
+        const country = anilistCountries[anilistId];
+        if (!country) return true; // Fallback
+        
+        if (selectedCountry === 'Japan' && (country === 'CN' || country === 'KR')) return false;
+        if (selectedCountry === 'China' && country !== 'CN') return false;
+        if (selectedCountry === 'Korea' && country !== 'KR') return false;
+        return true;
+    });
+}
+
 
 const helpers = require('./helpers')
 
@@ -167,8 +225,10 @@ addon.get('/:catalogChoices/catalog/:type/:id/:extra?.json', (req, res) => {
             res.end(JSON.stringify({metas:[]}))
             return
         }
-        if (catalogChoices['rpdbkey'] || !!catalogChoices['cinemeta']) {
+        const needsFiltering = catalogChoices['country'] && catalogChoices['country'] !== 'All';
+        if (catalogChoices['rpdbkey'] || !!catalogChoices['cinemeta'] || needsFiltering) {
             searchQueue.push({ id: search }, (searchResp) => {
+                searchResp = filterMetasByCountry(searchResp, catalogChoices['country'])
                 let searchList = searchResp.map(el => rpdb.convert(el, catalogChoices['rpdbkey'], catalogChoices['cinemeta'], mapping.kitsuPoster(parseInt(el.id.replace('kitsu:',''))), mapping.kitsuEngTitle(parseInt(el.id.replace('kitsu:','')))))
 
                 if (!!catalogChoices['cinemeta']) {
@@ -225,6 +285,7 @@ addon.get('/:catalogChoices/catalog/:type/:id/:extra?.json', (req, res) => {
             return
         }
 
+        resp.metas = filterMetasByCountry(resp.metas, catalogChoices['country'])
         resp.metas = resp.metas.map(el => rpdb.convert(el, catalogChoices['rpdbkey'], catalogChoices['cinemeta'], mapping.kitsuPoster(parseInt(el.id.replace('kitsu:',''))), mapping.kitsuEngTitle(parseInt(el.id.replace('kitsu:','')))))
 
         let cacheHeaders = {
@@ -276,4 +337,8 @@ if (!process.env.VERCEL) {
   })
 }
 
+addon.filterMetasByCountry = filterMetasByCountry;
+// Expose getKitsuToAnilistMap for testing dependency injection or cache clearing if needed, but not strictly required.
+addon._getKitsuToAnilistMap = getKitsuToAnilistMap; 
+addon._setAnilistCountries = (c) => { anilistCountries = c; }; // For testing
 module.exports = addon
