@@ -229,10 +229,10 @@ addon.get('/:catalogChoices/catalog/:type/:id/:extra?.json', (req, res) => {
             res.end(JSON.stringify({metas:[]}))
             return
         }
-        const needsFiltering = catalogChoices['country'] && catalogChoices['country'] !== 'All';
+        const needsFiltering = (extra.country || catalogChoices['country']) && (extra.country || catalogChoices['country']) !== 'All';
         if (catalogChoices['rpdbkey'] || !!catalogChoices['cinemeta'] || needsFiltering) {
             searchQueue.push({ id: search }, (searchResp) => {
-                searchResp = filterMetasByCountry(searchResp, catalogChoices['country'])
+                searchResp = filterMetasByCountry(searchResp, extra.country || catalogChoices['country'])
                 let searchList = searchResp.map(el => rpdb.convert(el, catalogChoices['rpdbkey'], catalogChoices['cinemeta'], mapping.kitsuPoster(parseInt(el.id.replace('kitsu:',''))), mapping.kitsuEngTitle(parseInt(el.id.replace('kitsu:','')))))
 
                 if (!!catalogChoices['cinemeta']) {
@@ -289,7 +289,7 @@ addon.get('/:catalogChoices/catalog/:type/:id/:extra?.json', (req, res) => {
             return
         }
 
-        resp.metas = filterMetasByCountry(resp.metas, catalogChoices['country'])
+        resp.metas = filterMetasByCountry(resp.metas, extra.country || catalogChoices['country'])
         resp.metas = resp.metas.map(el => rpdb.convert(el, catalogChoices['rpdbkey'], catalogChoices['cinemeta'], mapping.kitsuPoster(parseInt(el.id.replace('kitsu:',''))), mapping.kitsuEngTitle(parseInt(el.id.replace('kitsu:','')))))
 
         let cacheHeaders = {
