@@ -345,12 +345,12 @@ function updateMappingsList() {
 							if (el['notify.moe_id'])
 								addNewId('notifymoe', el['notify.moe_id'], el.kitsu_id, true)
 							let imdbId = null
-							if (typeof el.imdb_id === 'string') {
+							if (typeof el.imdb_id === 'string' && imdbId.toLowerCase() !== 'unknown' && imdbId.startsWith('tt')) {
 								imdbId = el.imdb_id
 							} else if (Array.isArray(el.imdb_id)) {
 								imdbId = el.imdb_id.find(id => typeof id === 'string' && id.toLowerCase() !== 'unknown' && id.startsWith('tt'))
 							}
-							if (imdbId && imdbId.toLowerCase() !== 'unknown' && imdbId.startsWith('tt'))
+							if (imdbId)
 								rpdb.setKitsuToImdbId(el.kitsu_id, imdbId)
 						}
 					})
