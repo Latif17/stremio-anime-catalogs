@@ -270,10 +270,6 @@ addon.get('/kitsuToImdb', (req, res) => {
 
 const port = process.env.PORT || 7090
 
-if (!process.env.VERCEL) {
-  addon.listen(port, function() {
+addon.listen(port, function() {
     console.log('Addon running on port ' + port)
-  })
-}
-
-module.exports = addon
+})
