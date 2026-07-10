@@ -307,10 +307,6 @@ module.exports = {
 	kitsuEngTitle: (kitsuId) => { return kitsuEngTitles[kitsuId] },
 }
 
-function isImdbId(id) {
-	return typeof id === 'string' && id.toLowerCase() !== 'unknown' && id.startsWith('tt')
-}
-
 // update mappings from another source
 function updateMappingsList() {
 	needle.get('https://github.com/Fribb/anime-lists/raw/refs/heads/master/anime-list-full.json', { json: true, follow_max: 3 }, (err, resp, body) => {
@@ -348,12 +344,7 @@ function updateMappingsList() {
 								addNewId('livechart', el.livechart_id, el.kitsu_id, true)
 							if (el['notify.moe_id'])
 								addNewId('notifymoe', el['notify.moe_id'], el.kitsu_id, true)
-							let imdbId = null
-							if (isImdbId(el.imdb_id)) {
-								imdbId = el.imdb_id
-							} else if (Array.isArray(el.imdb_id)) {
-								imdbId = el.imdb_id.find(isImdbId)
-							}
+							const imdbId = Array.isArray(el.imdb_id) ? el.imdb_id.find(id => typeof id === 'string' && id.startsWith('tt')) : false
 							if (imdbId)
 								rpdb.setKitsuToImdbId(el.kitsu_id, imdbId)
 						}
