@@ -271,5 +271,5 @@ addon.get('/kitsuToImdb', (req, res) => {
 const port = process.env.PORT || 7090
 
 addon.listen(port, function() {
-    console.log('Addon running on port ' + port)
+  console.log('Addon running on port ' + port)
 })
